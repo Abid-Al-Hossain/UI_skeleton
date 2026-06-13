@@ -1,22 +1,36 @@
 "use client";
 
 import { SectionCard } from "@/components/shared/layout/SectionCard";
+import { LabeledField } from "@/components/shared/layout/LabeledField";
 import Slider from "@/components/shared/input/Slider";
 import Select from "@/components/shared/input/Select";
-import Switch from "@/components/shared/input/Switch";
 import type { SkeletonState } from "../types";
 
 type Props = { state: SkeletonState; update: <K extends keyof SkeletonState>(key: K, value: SkeletonState[K]) => void };
 
+const EASING_OPTIONS = [
+  { value: "ease", label: "Ease" },
+  { value: "ease-in", label: "Ease In" },
+  { value: "ease-out", label: "Ease Out" },
+  { value: "ease-in-out", label: "Ease In/Out" },
+  { value: "linear", label: "Linear" },
+];
+
 export default function MotionSection({ state, update }: Props) {
-  return <SectionCard title="Motion" subtitle="Motion controls for native skeleton generation."><Switch label="Motion safe" checked={state.motion} onChange={(value) => update("motion", value)} />
-<Select label="Animation" value={state.animation} options={[
-  "none",
-  "fade",
-  "scale",
-  "slide",
-  "shimmer"
-]} onChange={(value) => update("animation", value)} />
-<Slider label="Duration" value={state.duration} min={0} max={6000} step={1} onChange={(value) => update("duration", value)} />
-<Switch label="Reduced motion" checked={state.reducedMotion} onChange={(value) => update("reducedMotion", value)} /></SectionCard>;
+  return (
+    <SectionCard title="Transitions" subtitle="Duration and easing for interactive state changes.">
+      <div className="space-y-4">
+        <LabeledField label={`Duration: ${state.transitionDuration}ms`}>
+          <Slider value={state.transitionDuration} min={0} max={1000} step={10} onChange={(v) => update("transitionDuration", v)} />
+        </LabeledField>
+        <LabeledField label="Easing">
+          <Select
+            value={state.transitionEasing}
+            onChange={(v) => update("transitionEasing", v as SkeletonState["transitionEasing"])}
+            options={EASING_OPTIONS}
+          />
+        </LabeledField>
+      </div>
+    </SectionCard>
+  );
 }

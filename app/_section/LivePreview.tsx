@@ -2,6 +2,25 @@
 
 import type { CSSProperties } from "react";
 import type { SkeletonState } from "../types";
+import { SYSTEM_FONTS } from "@/components/shared/typography/fontConstants";
+
+function resolveFont(state: { fontBucket: "system" | "google"; googleFontFamily: string; systemFontIdx: number }): string {
+  return state.fontBucket === "google"
+    ? `"${state.googleFontFamily}", sans-serif`
+    : (SYSTEM_FONTS[state.systemFontIdx]?.css ?? "inherit");
+}
+
+function buildShadow(state: { shadowEnabled: boolean; shadowX: number; shadowY: number; shadowBlur: number; shadowSpread: number; shadowColor: string; shadowOpacity: number }): string {
+  if (!state.shadowEnabled) return "none";
+  const hex = Math.round(state.shadowOpacity * 255).toString(16).padStart(2, "0");
+  return `${state.shadowX}px ${state.shadowY}px ${state.shadowBlur}px ${state.shadowSpread}px ${state.shadowColor}${hex}`;
+}
+
+function buildRadius(state: { radiusLinked: boolean; radius: number; radiusTL: number; radiusTR: number; radiusBR: number; radiusBL: number }): string {
+  return state.radiusLinked
+    ? `${state.radius}px`
+    : `${state.radiusTL}px ${state.radiusTR}px ${state.radiusBR}px ${state.radiusBL}px`;
+}
 
 function shell(state: SkeletonState): CSSProperties {
   return {
@@ -9,18 +28,23 @@ function shell(state: SkeletonState): CSSProperties {
     minHeight: state.height,
     padding: state.padding,
     gap: state.gap,
-    borderRadius: state.radius,
-    border: `${state.borderWidth}px solid ${state.border}`,
-    boxShadow: `0 ${Math.round(state.shadow / 3)}px ${state.shadow}px rgba(0,0,0,.28)`,
+    borderRadius: buildRadius(state),
+    border: `${state.borderWidth}px ${state.borderStyle} ${state.border}`,
+    boxShadow: buildShadow(state),
     background: state.background,
     color: state.foreground,
-    fontFamily: state.fontFamily,
+    fontFamily: resolveFont(state),
+    fontStyle: state.fontStyle,
+    textTransform: state.textTransform,
+    textDecoration: state.textDecoration,
+    letterSpacing: `${state.letterSpacing}${state.letterSpacingUnit}`,
+    lineHeight: state.lineHeight,
     opacity: state.disabled ? 0.55 : 1,
   };
 }
 
 function blockStyle(state: SkeletonState, width: string, height: number, radius = state.radius / 2): CSSProperties {
-  const animated = state.motion && !state.reducedMotion && state.animation !== "none" && state.duration > 0;
+  const animated = state.transitionDuration > 0 && !state.reducedMotion && state.animation !== "none" && state.duration > 0;
   return {
     width,
     height,
