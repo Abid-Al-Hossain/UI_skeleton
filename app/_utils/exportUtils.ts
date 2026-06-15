@@ -10,9 +10,12 @@ export function buildReactCode(state: SkeletonState) {
   return `import * as React from "react";
 
 const state = ${JSON.stringify(state, null, 2)};
+function resolveFont(s) { return s.fontBucket === "google" ? '"' + s.googleFontFamily + '", sans-serif' : "inherit"; }
+function buildShadow(s) { if (!s.shadowEnabled) return "none"; var hex = Math.round(s.shadowOpacity * 255).toString(16).padStart(2, "0"); return s.shadowX + "px " + s.shadowY + "px " + s.shadowBlur + "px " + s.shadowSpread + "px " + s.shadowColor + hex; }
+
 
 function skeletonPiece(width, height, radius) {
-  const animated = state.motion && !state.reducedMotion && state.animation !== "none" && state.duration > 0;
+  const animated = (state.transitionDuration > 0) && !state.reducedMotion && state.animation !== "none" && state.duration > 0;
   return {
     width,
     height,
@@ -44,12 +47,13 @@ export default function SkeletonComponent() {
     minHeight: state.height,
     padding: state.padding,
     borderRadius: state.radius,
-    border: state.borderWidth + "px solid " + state.border,
-    boxShadow: "0 " + Math.round(state.shadow / 3) + "px " + state.shadow + "px rgba(0,0,0,.28)",
+    border: state.borderWidth + "px " + state.borderStyle + " " + (state.disabled && state.disabledUseCustomColors ? state.disabledBorder : state.border),
+    boxShadow: buildShadow(state),
     background: state.background,
     color: state.foreground,
-    fontFamily: state.fontFamily,
-    opacity: state.disabled ? 0.55 : 1,
+    fontFamily: resolveFont(state),
+    opacity: state.disabled ? (state.disabledOpacity ?? 0.5) : 1,
+cursor: state.disabled ? state.disabledCursor : undefined,
     display: "grid",
     alignContent: "start",
     gap: state.gap,
